@@ -7,6 +7,7 @@ Main bot implementation using aiogram
 
 import logging
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart, Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -530,7 +531,7 @@ async def handle_message(message: types.Message, state: FSMContext) -> None:
                 recipient_id,
                 f"📨 <b>You received an anonymous message:</b>\n\n"
                 f"{message.text}\n\n"
-                f"<i>Received: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</i>",
+                f"<i>Received: {datetime.now(ZoneInfo('Asia/Tashkent')).strftime('%Y-%m-%d %H:%M:%S')}</i>",
                 parse_mode="HTML"
             )
         except Exception as e:

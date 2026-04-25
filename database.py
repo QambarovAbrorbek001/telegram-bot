@@ -7,6 +7,7 @@ import json
 import os
 from typing import List, Dict, Optional, Tuple
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from config import DATABASE_PATH, BLOCK_LIST_FILE
 
 
@@ -81,11 +82,12 @@ class DatabaseManager:
         cursor = conn.cursor()
         
         try:
+            current_time = datetime.now(ZoneInfo("Asia/Tashkent")).strftime("%Y-%m-%d %H:%M:%S")
             cursor.execute('''
                 INSERT OR REPLACE INTO users 
                 (user_id, username, first_name, last_name, created_at)
-                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ''', (user_id, username, first_name, last_name))
+                VALUES (?, ?, ?, ?, ?)
+            ''', (user_id, username, first_name, last_name, current_time))
             
             conn.commit()
             return True
@@ -122,10 +124,11 @@ class DatabaseManager:
         cursor = conn.cursor()
         
         try:
+            current_time = datetime.now(ZoneInfo("Asia/Tashkent")).strftime("%Y-%m-%d %H:%M:%S")
             cursor.execute('''
                 INSERT INTO messages (recipient_id, message_text, created_at)
-                VALUES (?, ?, CURRENT_TIMESTAMP)
-            ''', (recipient_id, message_text))
+                VALUES (?, ?, ?)
+            ''', (recipient_id, message_text, current_time))
             
             # Update message count for recipient
             cursor.execute('''
@@ -199,12 +202,12 @@ class DatabaseManager:
         cursor = conn.cursor()
         
         # Calculate time cutoff
-        cutoff_time = datetime.now() - timedelta(seconds=time_window_seconds)
+        cutoff_time = (datetime.now(ZoneInfo("Asia/Tashkent")) - timedelta(seconds=time_window_seconds)).strftime("%Y-%m-%d %H:%M:%S")
         
         cursor.execute('''
             SELECT COUNT(*) FROM rate_limit 
             WHERE user_id = ? AND message_timestamp > ?
-        ''', (user_id, cutoff_time.isoformat()))
+        ''', (user_id, cutoff_time))
         
         count = cursor.fetchone()[0]
         conn.close()
@@ -217,10 +220,11 @@ class DatabaseManager:
         cursor = conn.cursor()
         
         try:
+            current_time = datetime.now(ZoneInfo("Asia/Tashkent")).strftime("%Y-%m-%d %H:%M:%S")
             cursor.execute('''
                 INSERT INTO rate_limit (user_id, message_timestamp)
-                VALUES (?, CURRENT_TIMESTAMP)
-            ''', (user_id,))
+                VALUES (?, ?)
+            ''', (user_id, current_time))
             conn.commit()
             return True
         except sqlite3.Error as e:
@@ -265,10 +269,10 @@ class DatabaseManager:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        cutoff_time = datetime.now() - timedelta(days=days)
+        cutoff_time = (datetime.now(ZoneInfo("Asia/Tashkent")) - timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
         cursor.execute('''
             DELETE FROM rate_limit WHERE message_timestamp < ?
-        ''', (cutoff_time.isoformat(),))
+        ''', (cutoff_time,))
         
         conn.commit()
         conn.close()
